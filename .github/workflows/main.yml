@@ -1,0 +1,31 @@
+name: Build Custom Prism Launcher
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Tmp Directory for Installer Assets
+        run: |
+          mkdir installer/tmp
+          if (Test-Path "icon.ico") { cp icon.ico installer/tmp/ } else { New-Item -Path "installer/tmp/icon.ico" -ItemType File }
+          if (Test-Path "small.bmp") { cp small.bmp installer/tmp/ } else { New-Item -Path "installer/tmp/small.bmp" -ItemType File }
+          if (Test-Path "large.bmp") { cp large.bmp installer/tmp/ } else { New-Item -Path "installer/tmp/large.bmp" -ItemType File }
+          if (Test-Path "jre.zip") { cp jre.zip installer/tmp/ } else { New-Item -Path "installer/tmp/jre.zip" -ItemType File }
+
+      - name: Auto Generate Build Script and Compile
+        run: |
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/inno.iss
+
+      - name: Upload Custom Launcher EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: Custom-Minecraft-Launcher-EXE
+          path: |
+            installer/Output/*.exe
+            Output/*.exe
