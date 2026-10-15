@@ -1,1 +1,240 @@
+; =====================================================================
+; NOTCLIENT - CUSTOM PVP MULTI-MODULE HUB WITH CLEAN SKIN INTEGRATION
+; =====================================================================
+#define AppName "NotClient"
+#define AppURL "https://skmedix.pl"
+#define AppVersion "10.0.0.0"
+#define AppVersionPretty "10.0.0"
+#define AppAuthor "Sudip Dev"
+#define AppDir "notclient"
+#define JavaFXVersion "22.0.2"
+#define MainJarFile "NotClient.jar"
 
+; Premium Asset Web Hooks for Custom Behance Minecraft Artwork and Autoupdater
+#define LogoURL "https://behance.net"
+#define UpdateURL "https://githubusercontent.com"
+
+; Official Discord Community Links
+#define DiscordURL "https://discord.gg"
+#define PartnerDiscordURL "https://discord.gg"
+
+; Live API Links for In-Client Direct Installations (Modrinth & SkinRestorer)
+#define ModrinthAPIBase "https://modrinth.com"
+#define CurseForgeAPIBase "https://curseforge.com"
+#define SkinRestorerURL "https://modrinth.com"
+
+[Setup]
+AppId={{A151427E-7A46-4D6D-8534-C4C04BADA77A}
+AppName={#AppName}
+AppVersion={#AppVersion}
+AppPublisher={#AppAuthor}
+AppPublisherURL={#AppURL}
+VersionInfoVersion={#AppVersion}
+DefaultDirName={userappdata}\{#AppDir}
+DisableProgramGroupPage=yes
+DefaultGroupName={#AppName}
+PrivilegesRequired=lowest
+OutputBaseFilename={#AppName}_CleanPvP_Setup
+
+; Embedded Native Custom Icon Configuration Matrix
+SetupIconFile=.\icon.ico
+UninstallDisplayIcon={app}\icon.ico
+
+UninstallDisplayName={#AppName} Launcher
+ArchiveExtraction=full
+Compression=zip
+SolidCompression=no
+
+; Visual Canvas Metrics Setup for Next-Gen Flat Gaming Hub Interface
+WizardStyle=modern
+WizardResizable=no
+WizardSmallImageFile={tmp}\small.bmp
+WizardImageFile={tmp}\large.bmp
+ExtraDiskSpaceRequired=209715200
+DisableWelcomePage=no
+DisableDirPage=auto
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+DirExistsWarning=no
+MinVersion=6.1.7600
+
+[Files]
+Source: "{#MainJarFile}"; DestDir: "{app}"; Flags: ignoreversion
+Source: ".\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{tmp}\jre.zip"; DestDir: "{tmp}"; Flags: external extractarchive recursesubdirs createallsubdirs ignoreversion deleteafterinstall
+
+[Icons]
+Name: "{userdesktop}\{#AppName}"; Filename: "{app}\jre\bin\javaw.exe"; Parameters: "-Xmx4096M -jar ""{app}\{#MainJarFile}"""; IconFilename: "{app}\icon.ico"; WorkingDir: "{app}"
+
+[Dirs]
+Name: "{userappdata}\.minecraft\{#AppDir}"
+Name: "{userappdata}\.minecraft\{#AppDir}\mods"
+Name: "{userappdata}\.minecraft\{#AppDir}\resourcepacks"
+Name: "{userappdata}\.minecraft\{#AppDir}\shaderpacks"
+Name: "{userappdata}\.minecraft\{#AppDir}\config"
+
+[Messages]
+WelcomeLabel1=NOTCLIENT GAMING HUB
+WelcomeLabel2=Custom PvP UI Edition - High performance optimization engine featuring filtered modules grid layout and global skin visibility.
+
+[Code]
+var
+  DownloadPage: TDownloadWizardPage;
+  DashboardPanel: TPanel;
+  VerSelector: TNewComboBox;
+  
+  ModPackCheck: TNewCheckBox;
+  ResourcePackCheck: TNewCheckBox;
+  ShaderPackCheck: TNewCheckBox;
+  SkinSystemCheck: TNewCheckBox;
+  HubTitleText: TNewStaticText;
+  
+  DiscordButton: TNewButton;
+  PartnerButton: TNewButton;
+
+procedure OpenDiscordLink(Sender: TObject);
+var
+  ErrorCode: Integer;
+begin
+  ShellExec('open', '{#DiscordURL}', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+end;
+
+procedure OpenPartnerLink(Sender: TObject);
+var
+  ErrorCode: Integer;
+begin
+  ShellExec('open', '{#PartnerDiscordURL}', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+end;
+
+procedure GenerateInGameHUDConfig;
+var
+  ConfigFilePath: String;
+  ConfigData: TStringList;
+begin
+  ConfigFilePath := ExpandConstant('{userappdata}\.minecraft\{#AppDir}\config\mod_menu_settings.json');
+  ConfigData := TStringList.Create;
+  try
+    ConfigData.Add('{');
+    ConfigData.Add('  "client_branding": "NotClient",');
+    ConfigData.Add('  "ui_style": "custom_feather_grid",');
+    ConfigData.Add('  "header_color": "#FF8C00",');
+    ConfigData.Add('  "enabled_modules": {');
+    ConfigData.Add('    "fps_counter": true,');
+    ConfigData.Add('    "ping_display": true,');
+    ConfigData.Add('    "cps_counter": true,');
+    ConfigData.Add('    "full_bright": true,');
+    ConfigData.Add('    "remove_hurt_shake": true,');
+    ConfigData.Add('    "damage_indicator": true,');
+    ConfigData.Add('    "nametags": true,');
+    ConfigData.Add('    "global_skins": true');
+    ConfigData.Add('  },');
+    ConfigData.Add('  "removed_modules": {');
+    ConfigData.Add('    "cosmetics": false,');
+    ConfigData.Add('    "auto_gg": false,');
+    ConfigData.Add('    "quick_messages": false,');
+    ConfigData.Add('    "notifications": false,');
+    ConfigData.Add('    "durability_warning": false,');
+    ConfigData.Add('    "toggle_sneak": false,');
+    ConfigData.Add('    "zoom": false');
+    ConfigData.Add('  },');
+    ConfigData.Add('  "menu_keybind": "KEY_RSHIFT"');
+    ConfigData.Add('}');
+    
+    ForceDirectories(ExtractFilePath(ConfigFilePath));
+    ConfigData.SaveToFile(ConfigFilePath);
+  finally
+    ConfigData.Free;
+  end;
+end;
+
+procedure InjectHyperGamingHubUI;
+begin
+  WizardForm.Color := $000A0A0A;             
+  WizardForm.WelcomePage.Color := $000A0A0A;
+  WizardForm.InnerPage.Color := $000A0A0A;
+  WizardForm.ReadyPage.Color := $000A0A0A;
+  WizardForm.FinishedPage.Color := $000A0A0A;
+  
+  WizardForm.Font.Name := 'Segoe UI';
+  WizardForm.Font.Color := $00E0E0E0;         
+  WizardForm.WelcomeLabel1.Font.Name := 'Impact'; 
+  WizardForm.WelcomeLabel1.Font.Color := $0033CC30; 
+  WizardForm.WelcomeLabel1.Font.Size := 24;
+  
+  DashboardPanel := TPanel.Create(WizardForm);
+  DashboardPanel.Parent := WizardForm.WelcomePage;
+  DashboardPanel.Left := ScaleX(175);
+  DashboardPanel.Top := ScaleY(155);
+  DashboardPanel.Width := ScaleX(240);
+  DashboardPanel.Height := ScaleY(150);
+  DashboardPanel.Color := $00141414;        
+  DashboardPanel.ParentBackground := False;
+  
+  VerSelector := TNewComboBox.Create(WizardForm);
+  VerSelector.Parent := DashboardPanel;
+  VerSelector.Left := ScaleX(15);
+  VerSelector.Top := ScaleY(10);
+  VerSelector.Width := ScaleX(210);
+  VerSelector.Style := csDropDownList;
+  VerSelector.Color := $00222222;            
+  VerSelector.Font.Color := $00FFFFFF;
+  VerSelector.Items.Add('Release 1.21.1 [Fabric Hub Profile]');
+  VerSelector.Items.Add('Release 1.8.9 [PvP Low-Lag Profile]');
+  VerSelector.ItemIndex := 0;                
+
+  HubTitleText := TNewStaticText.Create(WizardForm);
+  HubTitleText.Parent := DashboardPanel;
+  HubTitleText.Left := ScaleX(15);
+  HubTitleText.Top := ScaleY(42);
+  HubTitleText.Caption := 'LIVE APP STORE MODULES:';
+  HubTitleText.Font.Name := 'Segoe UI';
+  HubTitleText.Font.Color := $0033CC30;
+  HubTitleText.Font.Style := [fsBold];
+
+  ModPackCheck := TNewCheckBox.Create(WizardForm);
+  ModPackCheck.Parent := DashboardPanel;
+  ModPackCheck.Left := ScaleX(15);
+  ModPackCheck.Top := ScaleY(62);
+  ModPackCheck.Width := ScaleX(210);
+  ModPackCheck.Caption := 'Fabulously Optimized Pack (400+ FPS)';
+  ModPackCheck.Font.Color := $00FFFFFF;
+  ModPackCheck.Checked := True;
+
+  ResourcePackCheck := TNewCheckBox.Create(WizardForm);
+  ResourcePackCheck.Parent := DashboardPanel;
+  ResourcePackCheck.Left := ScaleX(15);
+  ResourcePackCheck.Top := ScaleY(82);
+  ResourcePackCheck.Width := ScaleX(210);
+  ResourcePackCheck.Caption := 'Premium 1.21 PvP Texture Pack';
+  ResourcePackCheck.Font.Color := $00FFFFFF;
+
+  ShaderPackCheck := TNewCheckBox.Create(WizardForm);
+  ShaderPackCheck.Parent := DashboardPanel;
+  ShaderPackCheck.Left := ScaleX(15);
+  ShaderPackCheck.Top := ScaleY(102);
+  ShaderPackCheck.Width := ScaleX(210);
+  ShaderPackCheck.Caption := 'Complementary Shaders (Vibrant UI)';
+  ShaderPackCheck.Font.Color := $00FFFFFF;
+
+  SkinSystemCheck := TNewCheckBox.Create(WizardForm);
+  SkinSystemCheck.Parent := DashboardPanel;
+  SkinSystemCheck.Left := ScaleX(15);
+  SkinSystemCheck.Top := ScaleY(122);
+  SkinSystemCheck.Width := ScaleX(210);
+  SkinSystemCheck.Caption := 'Global Skin Visibility System';
+  SkinSystemCheck.Font.Color := $00FFFFFF;
+  SkinSystemCheck.Checked := True;
+end;
+
+procedure InitializeWizard;
+begin
+  InjectHyperGamingHubUI;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    GenerateInGameHUDConfig;
+  end;
+end;
