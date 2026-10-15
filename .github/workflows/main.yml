@@ -8,7 +8,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: 'false'  # This fixes the submodule fatal URL error
 
       - name: Setup Tmp Directory for Installer Assets
         run: |
