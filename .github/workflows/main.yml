@@ -68,9 +68,9 @@ jobs:
       - name: Upload Custom Launcher EXE
         uses: actions/upload-artifact@v4
         with:
-          name: Custom-Minecraft-Launcher-EXE
-          path: |
-            installer/Output/*.exe
-            installer/*.exe
-            *.exe
-            Output/*.exe
+            name: Custom-Minecraft-Launcher-EXE
+            path: |
+             installer/Output/*.exe
+             installer/*.exe
+             *.exe
+               Output/*.exe
