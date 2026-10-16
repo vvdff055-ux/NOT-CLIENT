@@ -10,6 +10,8 @@
 #define MainJarFile "NotClient.jar"
 
 [Setup]
+; Put Inno Setup outputs into installer/Output so workflow can upload reliably
+OutputDir=installer/Output
 AppId={{A151427E-7A46-4D6D-8534-C4C04BADA77A}}
 AppName={#AppName}
 AppVersion={#AppVersion}
@@ -20,7 +22,6 @@ DefaultDirName={userappdata}\{#AppDir}
 DisableProgramGroupPage=yes
 DefaultGroupName={#AppName}
 PrivilegesRequired=lowest
-OutputDir=.
 OutputBaseFilename={#AppName}_CleanPvP_Setup
 SetupIconFile=..\icon.ico
 UninstallDisplayIcon={app}\icon.ico
@@ -79,7 +80,7 @@ var
   ConfigFilePath: String;
   ConfigData: TStringList;
 begin
-  ConfigFilePath := ExpandConstant('{userappdata}\ .minecraft\{#AppDir}\config\mod_menu_settings.json');
+  ConfigFilePath := ExpandConstant('{userappdata}\.minecraft\{#AppDir}\config\mod_menu_settings.json');
   ConfigData := TStringList.Create;
   try
     ConfigData.Add('{');
@@ -107,7 +108,6 @@ begin
     ConfigData.Add('  },');
     ConfigData.Add('  "menu_keybind": "KEY_RSHIFT"');
     ConfigData.Add('}');
-
     ForceDirectories(ExtractFilePath(ConfigFilePath));
     ConfigData.SaveToFile(ConfigFilePath);
   finally
