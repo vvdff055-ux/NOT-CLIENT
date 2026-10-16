@@ -1,4 +1,4 @@
-name: Build Custom Prism Launcher
+name: Build Custom SK Launcher
 on: [push, workflow_dispatch]
 
 jobs:
