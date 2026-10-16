@@ -23,15 +23,17 @@ jobs:
           New-Item -ItemType Directory -Force -Path installer/tmp | Out-Null
 
           if (Test-Path "installer/logo.png") {
-            try {
-              magick "installer/logo.png" -define icon:auto-resize=256,128,64,48,32,16 "icon.ico"
-              magick "installer/logo.png" -resize 64x64 "installer/tmp/small.bmp"
-              magick "installer/logo.png" -resize 256x256 "installer/tmp/large.bmp"
-            } catch {
+            # Try to generate icon and BMPs; check magick exit code instead of try/catch
+            & magick "installer/logo.png" -define icon:auto-resize=256,128,64,48,32,16 "icon.ico"
+            if ($LASTEXITCODE -ne 0) {
               Write-Host "ImageMagick failed to read installer/logo.png — file may be corrupted. Falling back to icon.ico or placeholders."
               if (Test-Path "icon.ico") { Copy-Item "icon.ico" "installer/tmp/icon.ico" -Force }
               New-Item -Path "installer/tmp/small.bmp" -ItemType File -Force | Out-Null
               New-Item -Path "installer/tmp/large.bmp" -ItemType File -Force | Out-Null
+            } else {
+              & magick "installer/logo.png" -resize 64x64 "installer/tmp/small.bmp"
+              & magick "installer/logo.png" -resize 256x256 "installer/tmp/large.bmp"
+              if (Test-Path "icon.ico") { Copy-Item "icon.ico" "installer/tmp/icon.ico" -Force } else { Copy-Item "icon.ico" "installer/tmp/icon.ico" -ErrorAction SilentlyContinue }
             }
           } elseif (Test-Path "icon.ico") {
             Copy-Item "icon.ico" "installer/tmp/icon.ico" -Force
@@ -55,13 +57,13 @@ jobs:
           if (-not (Test-Path $iscc)) { throw "Inno Setup (ISCC.exe) not found on runner." }
 
           Write-Host "Running ISCC: $iscc installer\inno.iss"
-          & $iscc "installer\inno.iss"
+          & $iscc "installer/inno.iss"
 
       - name: List files after build (debug)
         shell: powershell
         run: |
           Write-Host "---- Files in repo after build (top 200 lines) ----"
-          Get-ChildItem -Force -Recurse -File -ErrorAction SilentlyContinue | Select-Object FullName, Length | Out-String -Width 4096 | Write-Host
+          Get-ChildItem -Force -Recurse -File -ErrorAction SilentlyContinue | Select-Object FullName, Length | Out-String -Width 4096 | Select-String -Pattern ".exe" -Context 0,2 | Out-String | Write-Host
 
       - name: Upload Custom Launcher EXE
         uses: actions/upload-artifact@v4
