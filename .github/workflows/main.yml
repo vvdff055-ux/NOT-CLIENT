@@ -8,19 +8,47 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          submodules: 'false'  # This fixes the submodule fatal URL error
+          submodules: 'false'
+
+      - name: Install build tools
+        shell: powershell
+        run: |
+          choco feature enable -n allowGlobalConfirmation
+          choco install -y innosetup imagemagick
+          RefreshEnv
 
       - name: Setup Tmp Directory for Installer Assets
+        shell: powershell
         run: |
-          mkdir installer/tmp
-          if (Test-Path "icon.ico") { cp icon.ico installer/tmp/ } else { New-Item -Path "installer/tmp/icon.ico" -ItemType File }
-          if (Test-Path "small.bmp") { cp small.bmp installer/tmp/ } else { New-Item -Path "installer/tmp/small.bmp" -ItemType File }
-          if (Test-Path "large.bmp") { cp large.bmp installer/tmp/ } else { New-Item -Path "installer/tmp/large.bmp" -ItemType File }
-          if (Test-Path "jre.zip") { cp jre.zip installer/tmp/ } else { New-Item -Path "installer/tmp/jre.zip" -ItemType File }
+          New-Item -ItemType Directory -Force -Path installer/tmp | Out-Null
+
+          if (Test-Path "installer/logo.png") {
+            magick "installer/logo.png" -define icon:auto-resize=256,128,64,48,32,16 "icon.ico"
+            magick "installer/logo.png" -resize 64x64 "installer/tmp/small.bmp"
+            magick "installer/logo.png" -resize 256x256 "installer/tmp/large.bmp"
+          } elseif (Test-Path "icon.ico") {
+            Copy-Item "icon.ico" "installer/tmp/icon.ico" -Force
+            if (Test-Path "small.bmp") { Copy-Item "small.bmp" "installer/tmp/small.bmp" -Force } else { New-Item -Path "installer/tmp/small.bmp" -ItemType File -Force | Out-Null }
+            if (Test-Path "large.bmp") { Copy-Item "large.bmp" "installer/tmp/large.bmp" -Force } else { New-Item -Path "installer/tmp/large.bmp" -ItemType File -Force | Out-Null }
+          } else {
+            New-Item -Path "installer/tmp/icon.ico" -ItemType File -Force | Out-Null
+            New-Item -Path "installer/tmp/small.bmp" -ItemType File -Force | Out-Null
+            New-Item -Path "installer/tmp/large.bmp" -ItemType File -Force | Out-Null
+          }
+
+          if (-not (Test-Path "installer/tmp/jre.zip")) {
+            New-Item -Path "installer/tmp/jre.zip" -ItemType File -Force | Out-Null
+          }
 
       - name: Auto Generate Build Script and Compile
+        shell: powershell
         run: |
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/inno.iss
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+          }
+          if (-not (Test-Path $iscc)) { throw "Inno Setup (ISCC.exe) not found." }
+          & $iscc "installer/inno.iss"
 
       - name: Upload Custom Launcher EXE
         uses: actions/upload-artifact@v4
